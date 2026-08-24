@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"runtime"
 	"strings"
 
 	"golang.org/x/term"
@@ -47,12 +48,16 @@ func LoadConfig(path string) (*Config, error) {
 	// CL4 fix: the config may carry a plaintext token/key_password. Refuse to
 	// use a world-readable config so credentials are not readable by other
 	// users. Warn (but keep working) when the config is group-readable.
-	if fi, statErr := os.Stat(path); statErr == nil {
-		if fi.Mode().Perm()&0o004 != 0 {
-			return nil, fmt.Errorf("config %s is world-readable (0%o); chmod 600 to protect credentials", path, fi.Mode().Perm())
-		}
-		if fi.Mode().Perm()&0o040 != 0 {
-			fmt.Fprintf(os.Stderr, "warning: config %s is group-readable (0%o); consider chmod 600\n", path, fi.Mode().Perm())
+	// On Windows, os.FileInfo.Mode().Perm() is meaningless (always 0o666),
+	// so the permission check is skipped there.
+	if runtime.GOOS != "windows" {
+		if fi, statErr := os.Stat(path); statErr == nil {
+			if fi.Mode().Perm()&0o004 != 0 {
+				return nil, fmt.Errorf("config %s is world-readable (0%o); chmod 600 to protect credentials", path, fi.Mode().Perm())
+			}
+			if fi.Mode().Perm()&0o040 != 0 {
+				fmt.Fprintf(os.Stderr, "warning: config %s is group-readable (0%o); consider chmod 600\n", path, fi.Mode().Perm())
+			}
 		}
 	}
 	var cfg Config
