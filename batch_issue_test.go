@@ -99,7 +99,7 @@ func TestCmdAICBatchFull(t *testing.T) {
 	dir := t.TempDir()
 	outDir := filepath.Join(dir, "out")
 	cfgPath := filepath.Join(dir, "batch.json")
-	cfg := `{"ca":"Root CA","out_dir":"` + outDir + `","users":[
+	cfg := `{"ca":"Root CA","out_dir":` + marshalJSON(outDir) + `,"users":[
 	  {"cn":"zhangsan","subject":"O=Varwof","agents":[
 	    {"agent_id":"zs-agent","realm":"varwof","hash_algo":"sha256","delegation_mode":0,
 	     "capabilities":[{"scheme_id":"varwof/demo-mysql-v1","capability_id":"query"}]}
