@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Jijie Wei (varwof)
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -24,9 +27,9 @@ func TestCmdBatchIssue(t *testing.T) {
 	var gotMethod string
 	var gotBatch struct {
 		Requests []struct {
-			CN      string `json:"cn"`
-			Profile string `json:"profile,omitempty"`
-			CA      string `json:"ca,omitempty"`
+			CN       string `json:"cn"`
+			Profile  string `json:"profile,omitempty"`
+			CA       string `json:"ca,omitempty"`
 			Validity int    `json:"validity,omitempty"`
 		} `json:"requests"`
 		Fast bool `json:"fast"`

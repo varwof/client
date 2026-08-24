@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Jijie Wei (varwof)
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -100,12 +103,12 @@ func TestCmdAICListNoConfig(t *testing.T) {
 func TestCmdAICIssueSPUFFEDomainRequired(t *testing.T) {
 	if os.Getenv("AIC_SPIFFE_EXIT_HELPER") == "1" {
 		cmdAICIssue(nil, map[string]string{
-			"--user-cert":  "/nonexistent",
-			"--user-key":   "/nonexistent",
-			"--agent":      "test-agent",
-			"--caps":       "mysql:SELECT:*",
-			"--spiffe":     "true",
-			"--ca":         "test-ca",
+			"--user-cert": "/nonexistent",
+			"--user-key":  "/nonexistent",
+			"--agent":     "test-agent",
+			"--caps":      "mysql:SELECT:*",
+			"--spiffe":    "true",
+			"--ca":        "test-ca",
 		})
 		return
 	}

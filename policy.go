@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Jijie Wei (varwof)
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -62,7 +65,7 @@ type pkcs7SignedData struct {
 	Version          int
 	DigestAlgorithms []pkcs7AlgorithmIdentifier `asn1:"set"`
 	EncapContentInfo pkcs7EncapsulatedContentInfo
-	Certificates     []asn1.RawValue `asn1:"optional,implicit,tag:0"`
+	Certificates     []asn1.RawValue   `asn1:"optional,implicit,tag:0"`
 	SignerInfos      []pkcs7SignerInfo `asn1:"set"`
 }
 

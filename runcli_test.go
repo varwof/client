@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Jijie Wei (varwof)
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -448,9 +451,9 @@ func TestCmdAICIssueConstraintsAndJSON(t *testing.T) {
 			"--user-cert": certPath, "--user-key": keyPath,
 			"--agent": "agent-1", "--caps": "varwof/demo-mysql-v1:query",
 			"--constraints": "varwof/demo-mysql-v1:query:{\"max_rows\":100}",
-			"--subject": "/C=CN/O=custom/CN=cn",
-			"--ca": "Root CA",
-			"--out": outDir, "--json": "true",
+			"--subject":     "/C=CN/O=custom/CN=cn",
+			"--ca":          "Root CA",
+			"--out":         outDir, "--json": "true",
 		})
 	})
 	if !strings.Contains(out, "Issued AIC: agent-1") || !strings.Contains(out, `"serial_number": "s1"`) {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Jijie Wei (varwof)
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -294,13 +297,13 @@ func TestVerifyPolicySignatureRootsFailClosed(t *testing.T) {
 	// Roots pool that does not contain the CA that issued the signer.
 	otherKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	otherCA := &x509.Certificate{
-		SerialNumber: big.NewInt(99),
-		Subject:      pkix.Name{CommonName: "Other CA"},
-		NotBefore:    time.Now().Add(-time.Hour),
-		NotAfter:     time.Now().Add(24 * time.Hour),
-		IsCA:         true,
+		SerialNumber:          big.NewInt(99),
+		Subject:               pkix.Name{CommonName: "Other CA"},
+		NotBefore:             time.Now().Add(-time.Hour),
+		NotAfter:              time.Now().Add(24 * time.Hour),
+		IsCA:                  true,
 		BasicConstraintsValid: true,
-		KeyUsage:     x509.KeyUsageCertSign,
+		KeyUsage:              x509.KeyUsageCertSign,
 	}
 	otherDER, _ := x509.CreateCertificate(rand.Reader, otherCA, otherCA, &otherKey.PublicKey, otherKey)
 	otherCACert, _ := x509.ParseCertificate(otherDER)

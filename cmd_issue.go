@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Jijie Wei (varwof)
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -8,15 +11,15 @@ import (
 )
 
 type issueReq struct {
-	CA                     string   `json:"ca"`
-	CN                     string   `json:"cn"`
-	SAN                    string   `json:"san,omitempty"`
-	Subject                string   `json:"subject,omitempty"`
-	Profile                string   `json:"profile,omitempty"`
-	KeyType                string   `json:"key_type,omitempty"`
-	Validity               int      `json:"validity,omitempty"`
-	CAScope                string   `json:"ca_scope,omitempty"`
-	PrincipalAuthorization *aicPA   `json:"principal_authorization,omitempty"`
+	CA                     string `json:"ca"`
+	CN                     string `json:"cn"`
+	SAN                    string `json:"san,omitempty"`
+	Subject                string `json:"subject,omitempty"`
+	Profile                string `json:"profile,omitempty"`
+	KeyType                string `json:"key_type,omitempty"`
+	Validity               int    `json:"validity,omitempty"`
+	CAScope                string `json:"ca_scope,omitempty"`
+	PrincipalAuthorization *aicPA `json:"principal_authorization,omitempty"`
 }
 
 type issueResp struct {
@@ -105,13 +108,13 @@ func cmdBatchIssue(client *Client, args map[string]string) {
 		os.Exit(1)
 	}
 	type batchEntry struct {
-		CN                     string   `json:"cn"`
-		SAN                    string   `json:"san,omitempty"`
-		Profile                string   `json:"profile,omitempty"`
-		CA                     string   `json:"ca,omitempty"`
-		KeyType                string   `json:"key_type,omitempty"`
-		Validity               int      `json:"validity,omitempty"`
-		PrincipalAuthorization *aicPA   `json:"principal_authorization,omitempty"`
+		CN                     string `json:"cn"`
+		SAN                    string `json:"san,omitempty"`
+		Profile                string `json:"profile,omitempty"`
+		CA                     string `json:"ca,omitempty"`
+		KeyType                string `json:"key_type,omitempty"`
+		Validity               int    `json:"validity,omitempty"`
+		PrincipalAuthorization *aicPA `json:"principal_authorization,omitempty"`
 	}
 	type batchPayload struct {
 		Requests []batchEntry `json:"requests"`
