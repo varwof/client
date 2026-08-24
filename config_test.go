@@ -13,6 +13,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -151,8 +152,12 @@ func TestLoadConfigErrors(t *testing.T) {
 }
 
 // TestLoadConfigRejectsWorldReadable verifies the CL4 fix: a config carrying
-// credentials must not be world-readable.
+// credentials must not be world-readable. Skipped on Windows because
+// os.FileInfo.Mode().Perm() is meaningless there (always 0o666).
 func TestLoadConfigRejectsWorldReadable(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("world-readable check skipped on Windows (no meaningful mode bits)")
+	}
 	dir := t.TempDir()
 	cfgPath := filepath.Join(dir, "world.json")
 	if err := os.WriteFile(cfgPath, []byte(`{"server":"http://127.0.0.1:8445","token":"abc"}`), 0o644); err != nil {
