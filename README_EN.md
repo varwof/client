@@ -37,3 +37,7 @@ varwof-cli/
 ├── README.md
 └── go.mod
 ```
+
+## License
+
+Apache-2.0
