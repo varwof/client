@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"syscall"
 
 	"golang.org/x/term"
 )
@@ -33,7 +32,7 @@ func cmdRepl(configPath string) {
 			}
 			if cfg.KeyPassword == "" {
 				fmt.Fprintf(os.Stderr, "Enter key password: ")
-				pwBytes, err := term.ReadPassword(syscall.Stdin)
+				pwBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 				fmt.Fprintln(os.Stderr)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Read password error: %v\n", err)
@@ -156,7 +155,7 @@ func runCLI(configPath string, command string, args map[string]string, pos []str
 			}
 			if cfg.KeyPassword == "" {
 				fmt.Fprintf(os.Stderr, "Enter password for %s: ", cfg.ClientKey)
-				pwBytes, err := term.ReadPassword(syscall.Stdin)
+				pwBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 				fmt.Fprintln(os.Stderr)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Read password error: %v\n", err)

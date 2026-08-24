@@ -13,7 +13,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"syscall"
 
 	"golang.org/x/term"
 )
@@ -110,7 +109,7 @@ func resolveKeyPassword(explicit, keyPath string) string {
 		return p
 	}
 	fmt.Fprintf(os.Stderr, "Enter password for %s: ", keyPath)
-	pw, err := term.ReadPassword(syscall.Stdin)
+	pw, err := term.ReadPassword(int(os.Stdin.Fd()))
 	fmt.Fprintln(os.Stderr)
 	if err != nil {
 		return ""
@@ -153,7 +152,7 @@ func (c *Config) TLSConfig() (*tls.Config, error) {
 		}
 		if password == "" {
 			fmt.Fprintf(os.Stderr, "Enter password for %s: ", c.ClientKey)
-			pwBytes, err := term.ReadPassword(syscall.Stdin)
+			pwBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 			fmt.Fprintln(os.Stderr)
 			if err != nil {
 				return nil, fmt.Errorf("read password: %w", err)
