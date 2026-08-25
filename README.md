@@ -1,43 +1,79 @@
-# varwof-cli — 命令行管理工具
+# varwof-cli
 
-Varwof PKI 核心的命令行管理客户端。通过 mTLS 直连 core API，支持证书签发、吊销、续期、查询等操作。
+> CLI management tool — mTLS direct connection to core API for certificate issuance, revocation, renewal, and queries.
 
-```
-签发请求 → varwof-cli ──mTLS──→ core API
-```
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Go Reference](https://pkg.go.dev/badge/github.com/varwof/client)](https://pkg.go.dev/github.com/varwof/client)
 
-## 功能
+[中文](README_CN.md)
 
-- `issue` — 签发新证书
-- `revoke` — 吊销证书
-- `renew` — 续期证书
-- `list` — 列出证书/CA
-- `cas` — 查看 CA 列表
-- `find-by-key` — 按公钥查询证书
-- `re-sign` — 原公钥重签证书
-- `revoke-by-principal` — 按人吊销
-- `revoke-subca` — 按子 CA 吊销
-- `batch` — 批量签发
+## What is varwof-cli?
 
-## Project Structure
+Command-line management client for varwof PKI core. Connects to core API via mTLS for full certificate lifecycle management.
 
 ```
-varwof-cli/
-├── main.go                # CLI 入口
-├── client.go              # mTLS HTTP 客户端
-├── config.go              # 配置加载
-├── key.go                 # 密钥解析
-├── repl.go                # REPL 交互模式
-├── cmd_issue.go           # issue 命令
-├── cmd_revoke.go          # revoke 命令
-├── cmd_renew.go           # renew 命令
-├── cmd_list.go            # list 命令
-├── cmd_find.go            # find-by-key 命令
-├── docs/                  # 用户文档
-├── README.md
-└── go.mod
+Request → varwof-cli ──mTLS──→ core API
 ```
 
-## License
+## Quick Start
 
-Apache-2.0
+```bash
+go build -o varwof-cli .
+
+cat > config.json <<EOF
+{
+  "server": "https://127.0.0.1:4433",
+  "ca_cert": "/etc/varwof/core/root/ca.pem",
+  "client_cert": "/etc/varwof/core/keys/superadmin.pem",
+  "client_key": "/etc/varwof/core/keys/superadmin-key.pem"
+}
+EOF
+
+varwof-cli --config config.json issue \
+  --cn server.example.com \
+  --san "DNS:server.example.com,IP:10.0.0.1" \
+  --profile tls-server
+
+varwof-cli --config config.json cas
+```
+
+## Installation
+
+```bash
+go build -o varwof-cli .
+```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `issue` | Issue new certificate |
+| `revoke` | Revoke certificate |
+| `renew` | Renew certificate |
+| `list` | List certificates/CAs |
+| `cas` | View CA list |
+| `find-by-key` | Find by public key |
+| `re-sign` | Re-sign with original key |
+| `revoke-by-principal` | Revoke by person |
+| `revoke-subca` | Revoke by sub-CA |
+| `batch` | Batch issuance |
+
+## Ecosystem
+
+```mermaid
+graph LR
+    cli["varwof-cli"] -->|mTLS| core["core<br/>PKI CA"]
+    core --> db[("SQLite")]
+```
+
+client is the **management client** of the varwof ecosystem. This project is a member of the [Open Invention Network](https://openinventionnetwork.com/).
+
+## Links
+
+| | |
+|---|---|
+| Homepage | https://varwof.com |
+| Community | https://varwof.org |
+| IETF Draft | [draft-wei-aic-identity-cert](https://datatracker.ietf.org/doc/draft-wei-aic-identity-cert/) |
+| License | Apache-2.0 |
+| Member | [Open Invention Network](https://openinventionnetwork.com/) |
