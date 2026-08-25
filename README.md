@@ -2,6 +2,8 @@
 
 > CLI management tool — mTLS direct connection to core API for certificate issuance, revocation, renewal, and queries.
 
+> ⚠️ **Preview** — Not for production use. APIs and features may change before official release.
+
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/varwof/client)](https://pkg.go.dev/github.com/varwof/client)
 
