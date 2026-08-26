@@ -3,7 +3,7 @@ module github.com/varwof/client
 go 1.26.2
 
 require (
-	github.com/varwof/types v0.2.0
+	github.com/varwof/types v0.3.1
 	golang.org/x/term v0.45.0
 )
 
