@@ -4,6 +4,7 @@
 package main
 
 import (
+	"encoding/json"
 	"encoding/pem"
 	"net/http"
 	"net/http/httptest"
@@ -20,8 +21,15 @@ func writeAICJWTConfig(t *testing.T, srvURL, certPath string) string {
 	t.Helper()
 	dir := t.TempDir()
 	cfgPath := filepath.Join(dir, "config.json")
-	cfg := `{"server":"` + srvURL + `","token":"tok123","client_cert":"` + certPath + `"}`
-	if err := os.WriteFile(cfgPath, []byte(cfg), 0600); err != nil {
+	data, err := json.Marshal(map[string]string{
+		"server":      srvURL,
+		"token":       "tok123",
+		"client_cert": certPath,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cfgPath, data, 0600); err != nil {
 		t.Fatal(err)
 	}
 	return cfgPath
