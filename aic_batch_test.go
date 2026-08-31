@@ -57,7 +57,7 @@ func TestCmdAICDispatchList(t *testing.T) {
 	dir := t.TempDir()
 	path := writeBatchConfig(t, dir, validBatchJSON)
 	out := captureStdout(t, func() {
-		cmdAIC(nil, map[string]string{"--config": path}, "list")
+		cmdAIC(nil, nil, map[string]string{"--config": path}, "list")
 	})
 	if !strings.Contains(out, "alice") {
 		t.Fatalf("dispatch list output = %q", out)
@@ -66,7 +66,7 @@ func TestCmdAICDispatchList(t *testing.T) {
 
 func TestCmdAICUnknownSub(t *testing.T) {
 	if os.Getenv("AIC_EXIT_HELPER") == "1" {
-		cmdAIC(nil, map[string]string{}, "bogus")
+		cmdAIC(nil, nil, map[string]string{}, "bogus")
 		return
 	}
 	cmd := exec.Command(os.Args[0], "-test.run=TestCmdAICUnknownSub")

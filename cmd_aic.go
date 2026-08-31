@@ -350,16 +350,18 @@ func fillDelegationAuthEvidence(req *aicIssueReq, userKeyPath, password string, 
 
 // cmdAIC routes the `aic` command to its subcommands. With no subcommand it
 // defaults to `aic issue` (backward compatible).
-func cmdAIC(client *Client, args map[string]string, sub string) {
+func cmdAIC(client *Client, cfg *Config, args map[string]string, sub string) {
 	switch sub {
 	case "batch":
 		cmdAICBatch(client, args)
 	case "list":
 		cmdAICList(args)
+	case "jwt":
+		cmdAICJWT(client, cfg, args)
 	case "", "issue":
 		cmdAICIssue(client, args)
 	default:
-		fmt.Fprintf(os.Stderr, "Error: unknown aic subcommand %q (expected issue|batch|list)\n", sub)
+		fmt.Fprintf(os.Stderr, "Error: unknown aic subcommand %q (expected issue|batch|list|jwt)\n", sub)
 		os.Exit(1)
 	}
 }

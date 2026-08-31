@@ -105,7 +105,7 @@ func cmdRepl(configPath string) {
 		case "selfcheck":
 			cmdSelfcheck(client, args)
 		case "aic":
-			cmdAIC(client, args, sub)
+			cmdAIC(client, cfg, args, sub)
 		case "cert":
 			cmdCertShow(args)
 		default:
@@ -131,6 +131,7 @@ Commands:
   aic issue --user-cert <file> --user-key <file> --agent <id> --caps 'scheme:cap ...' [--constraints 'scheme:cap[:jsonparams] ...']
   aic batch --config <file.json>   Batch-issue AICs from a JSON user list
   aic list --config <file.json>    List users in the batch config file
+  aic jwt [--cert <file.pem>] [--out <file>]   Exchange an AIC cert for an AIC-JWT
   cert show --cert <file.pem>      Decode AIC / PrincipalAuthorization extensions
   exit / quit`)
 }
@@ -204,7 +205,7 @@ func runCLI(configPath string, command string, args map[string]string, pos []str
 	case "selfcheck":
 		cmdSelfcheck(client, args)
 	case "aic":
-		cmdAIC(client, args, firstPos(pos))
+		cmdAIC(client, cfg, args, firstPos(pos))
 	case "cert":
 		cmdCertShow(args)
 	default:

@@ -79,6 +79,10 @@ Commands:
            Issue an AIC from an existing user cert
   aic batch --config <file.json> [--out <dir>]  Batch-issue AICs from a JSON user list
   aic list --config <file.json>   List users in the batch config file
+  aic jwt [--cert <file.pem>] [--scope <s>] [--out <file>] [--json]
+           Exchange an X.509 AIC certificate for a short-lived AIC-JWT
+           (RFC 8693 via core /oauth/token). Default cert = config client_cert.
+           Print the token, or write it with --out.
   cert show --cert <file.pem>     Decode a certificate's varwof extensions
            (AIC / PrincipalAuthorization) that openssl x509 -text cannot
   policy sign --file authz.json --cert admin.pem --key admin-key.pem

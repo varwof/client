@@ -27,6 +27,7 @@ varwof-cli <config.json>              # 默认 REPL
 | `aic issue` | CLI only | 从用户证书派生 AIC（agent-proxy） |
 | `aic batch` | CLI only | 按配置文件批量签发用户证书 + AIC |
 | `aic list` | CLI only | 解析批量配置并列出用户/agent |
+| `aic jwt` | CLI only | 将 X.509 AIC 证书兑换为短效 AIC-JWT（RFC 8693） |
 | `cert show` | CLI + REPL | 本地解析证书（含 AIC/PA 扩展） |
 
 ## issue — 签发证书
@@ -194,6 +195,28 @@ varwof-cli config.json aic list --config batch.json
 ```
 
 解析批量配置，打印每个用户将获得的 principal_uid 及对应 agent 列表，不改动服务端。
+
+## aic jwt — 将 AIC 证书兑换为 AIC-JWT
+
+```bash
+varwof-cli config.json aic jwt --out alice-agent-01.jwt
+```
+
+通过 core 的 `/oauth/token`（RFC 8693 token exchange）将 X.509 AIC 证书兑换为短效 AIC-JWT。默认使用配置中的 `client_cert`，可用 `--cert` 覆盖：
+
+| flag | 必填 | 默认值 | 说明 |
+|------|------|--------|------|
+| `--cert` | 否 | config `client_cert` | 要兑换的 AIC 证书 PEM 路径 |
+| `--scope` | 否 | — | 可选 scope 覆盖 |
+| `--out` | 否 | 标准输出 | 将 token 写入文件（0600） |
+| `--json` | 否 | — | 输出完整 JSON 响应 |
+
+兑换凭证（mTLS 客户端证书或 DPoP）由 config 的 `client_cert`/`client_key` 提供。输出的 Bearer token 可用于 gateway HTTP 监听器（配置了匹配的 `jwt_ca_file` 信任根），例如：
+
+```bash
+export TOKEN=$(varwof-cli config.json aic jwt)
+curl -H "Authorization: Bearer $TOKEN" https://gateway:8443/api/query
+```
 
 ## cert show — 本地解析证书
 

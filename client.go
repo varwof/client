@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -126,6 +127,40 @@ func (c *Client) doRaw(method, path string, reqBody any) (*http.Response, error)
 		return nil, fmt.Errorf("http do: %w", err)
 	}
 	return resp, nil
+}
+
+// doForm issues an application/x-www-form-urlencoded POST (used by the
+// OAuth token endpoint, e.g. RFC 8693 x509→AIC-JWT exchange).
+func (c *Client) doForm(path string, form url.Values, respBody any) error {
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+path, strings.NewReader(form.Encode()))
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if c.token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.token)
+	}
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("http do: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		var ae apiError
+		if json.NewDecoder(resp.Body).Decode(&ae) == nil {
+			if ae.Detail != "" {
+				return fmt.Errorf("%s (detail: %s)", ae.Message, ae.Detail)
+			}
+			return fmt.Errorf("%s", ae.Message)
+		}
+		return fmt.Errorf("HTTP %d", resp.StatusCode)
+	}
+	if respBody != nil {
+		if err := json.NewDecoder(resp.Body).Decode(respBody); err != nil {
+			return fmt.Errorf("decode response: %w", err)
+		}
+	}
+	return nil
 }
 
 func readAll(r io.Reader) ([]byte, error) {

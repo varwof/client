@@ -27,6 +27,7 @@ varwof-cli <config.json>              # defaults to REPL
 | `aic issue` | CLI only | Derive an AIC from a user certificate (agent-proxy) |
 | `aic batch` | CLI only | Batch issue user certificates + AICs from a config file |
 | `aic list` | CLI only | Parse batch config and list users/agents |
+| `aic jwt` | CLI only | Exchange an X.509 AIC certificate for a short-lived AIC-JWT (RFC 8693) |
 | `cert show` | CLI + REPL | Parse a certificate locally (including AIC/PA extensions) |
 
 ## issue — Issue a Certificate
@@ -194,6 +195,28 @@ varwof-cli config.json aic list --config batch.json
 ```
 
 Parses the batch config and prints the principal_uid each user will receive along with the corresponding agent list; makes no changes on the server side.
+
+## aic jwt — Exchange an AIC Certificate for an AIC-JWT
+
+```bash
+varwof-cli config.json aic jwt --out alice-agent-01.jwt
+```
+
+Exchanges an X.509 AIC certificate for a short-lived AIC-JWT via core's `/oauth/token` (RFC 8693 token exchange). Defaults to the config's `client_cert`; override with `--cert`:
+
+| flag | required | default | description |
+|------|----------|---------|-------------|
+| `--cert` | no | config `client_cert` | path to the AIC certificate PEM to exchange |
+| `--scope` | no | — | optional scope override |
+| `--out` | no | stdout | write the token to a file (0600) |
+| `--json` | no | — | print the full JSON response |
+
+The proof of possession (mTLS client certificate or DPoP) comes from the config's `client_cert`/`client_key`. The resulting Bearer token works against gateway HTTP listeners configured with a matching `jwt_ca_file` trust root, e.g.:
+
+```bash
+export TOKEN=$(varwof-cli config.json aic jwt)
+curl -H "Authorization: Bearer $TOKEN" https://gateway:8443/api/query
+```
 
 ## cert show — Parse a Certificate Locally
 
