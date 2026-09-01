@@ -100,11 +100,14 @@ func cmdAICIssue(client *Client, args map[string]string) {
 			os.Exit(1)
 		}
 		args["--caps"] = strings.Join(tokens, " ")
-		if args["--pa"] == "" {
+		if args["--pa"] == "" && args["--pa-authz"] != "true" {
 			// Least-privilege default: the principal authorizes exactly the
 			// claims that were generated and validated.
 			args["--pa"] = args["--caps"]
 		}
+		// With --pa-authz, PA is left empty so varwof-core derives it from the
+		// principal's role grants in authz.json, enforcing claims ⊆ role grants
+		// (Pprincipal ∩ Cagent at issuance).
 		if args["--claims-digest"] == "" {
 			args["--claims-digest"] = digest
 		}

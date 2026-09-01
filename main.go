@@ -80,7 +80,8 @@ Commands:
            Issue an AIC from an existing user cert
            (caps/pa may carry JSON parameters: 'std/database-v1:query:SELECT:{"tables":["customers"]}';
            --claims-digest anchors the validated capability claims into the signed DA reason;
-           --from-claims <claims.json> derives caps/pa/digest from the validated claims file)
+           --from-claims <claims.json> derives caps/pa/digest from the validated claims file;
+           --pa-authz with --from-claims leaves PA to core's authz.json role derivation)
   aic batch --config <file.json> [--out <dir>]  Batch-issue AICs from a JSON user list
   aic list --config <file.json>   List users in the batch config file
   aic jwt [--cert <file.pem>] [--scope <s>] [--out <file>] [--json]
@@ -106,13 +107,14 @@ Key types: ecdsa-p256, ecdsa-p384, rsa-2048, rsa-4096, ed25519
 // string), fixing the ambiguity where "--flag --value" used to parse as two
 // flags.
 var booleanFlags = map[string]bool{
-	"--fast":   true,
-	"--json":   true,
-	"--spiffe": true,
-	"--pem":    true,
-	"--keep":   true,
-	"--info":   true,
-	"--crl":    true,
+	"--fast":     true,
+	"--json":     true,
+	"--spiffe":   true,
+	"--pa-authz": true,
+	"--pem":      true,
+	"--keep":     true,
+	"--info":     true,
+	"--crl":      true,
 }
 
 func parseArgs(args []string) (map[string]string, []string) {
