@@ -79,7 +79,8 @@ Commands:
            [--out <dir>] [--spiffe --spiffe-domain <domain>]
            Issue an AIC from an existing user cert
            (caps/pa may carry JSON parameters: 'std/database-v1:query:SELECT:{"tables":["customers"]}';
-           --claims-digest anchors the validated capability claims into the signed DA reason)
+           --claims-digest anchors the validated capability claims into the signed DA reason;
+           --from-claims <claims.json> derives caps/pa/digest from the validated claims file)
   aic batch --config <file.json> [--out <dir>]  Batch-issue AICs from a JSON user list
   aic list --config <file.json>   List users in the batch config file
   aic jwt [--cert <file.pem>] [--scope <s>] [--out <file>] [--json]

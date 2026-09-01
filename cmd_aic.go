@@ -13,6 +13,7 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -82,6 +83,33 @@ type aicIssueReq struct {
 }
 
 func cmdAICIssue(client *Client, args map[string]string) {
+	// --from-claims: consume the validated capability claims file directly
+	// (gen-capability minimal set). Must run before --caps/--pa are read.
+	// Derives --caps (and --pa when unset) with JSON parameters and anchors
+	// the file digest into the signed DA reason, so the operator never
+	// hand-copies inline JSON (P0-2 ergonomics).
+	if fromClaims := args["--from-claims"]; fromClaims != "" {
+		data, err := os.ReadFile(fromClaims)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: read claims file: %v\n", err)
+			os.Exit(1)
+		}
+		tokens, digest, err := claimsToCapTokens(data)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		args["--caps"] = strings.Join(tokens, " ")
+		if args["--pa"] == "" {
+			// Least-privilege default: the principal authorizes exactly the
+			// claims that were generated and validated.
+			args["--pa"] = args["--caps"]
+		}
+		if args["--claims-digest"] == "" {
+			args["--claims-digest"] = digest
+		}
+	}
+
 	userCertPath := args["--user-cert"]
 	userKeyPath := args["--user-key"]
 	agentID := args["--agent"]
@@ -90,6 +118,7 @@ func cmdAICIssue(client *Client, args map[string]string) {
 	spiffeDomain := args["--spiffe-domain"]
 	isSPIFFE := args["--spiffe"] == "true"
 	claimsDigest := args["--claims-digest"]
+
 	if userCertPath == "" {
 		fmt.Fprintln(os.Stderr, "Error: --user-cert is required")
 		os.Exit(1)
@@ -445,4 +474,38 @@ func parseCapToken(token string) (scheme, capID string, params []byte, err error
 		return "", "", nil, fmt.Errorf("invalid capability %q (expected scheme:capability[:jsonparams])", token)
 	}
 	return parts[0], parts[1], params, nil
+}
+
+// claimsToCapTokens converts a validated capability claims file into
+// capability tokens ("scheme:cap:{json}") plus the SHA-256 file digest used
+// to anchor the claims into the signed DelegationAuthorization (P1-3).
+func claimsToCapTokens(data []byte) ([]string, string, error) {
+	var claims []struct {
+		SchemeID   string         `json:"scheme_id"`
+		Capability string         `json:"capability"`
+		Parameters map[string]any `json:"parameters,omitempty"`
+	}
+	if err := json.Unmarshal(data, &claims); err != nil {
+		return nil, "", fmt.Errorf("parse claims file: %w", err)
+	}
+	if len(claims) == 0 {
+		return nil, "", fmt.Errorf("claims file is empty")
+	}
+	tokens := make([]string, 0, len(claims))
+	for i, c := range claims {
+		if c.SchemeID == "" || c.Capability == "" {
+			return nil, "", fmt.Errorf("claim[%d] missing scheme_id/capability", i)
+		}
+		tok := c.SchemeID + ":" + c.Capability
+		if len(c.Parameters) > 0 {
+			b, err := json.Marshal(c.Parameters)
+			if err != nil {
+				return nil, "", fmt.Errorf("claim[%d] parameters: %w", i, err)
+			}
+			tok += ":" + string(b)
+		}
+		tokens = append(tokens, tok)
+	}
+	sum := sha256.Sum256(data)
+	return tokens, hex.EncodeToString(sum[:]), nil
 }
