@@ -35,6 +35,7 @@ type aicCap struct {
 type aicGrant struct {
 	SchemeID     string `json:"scheme_id"`
 	CapabilityID string `json:"capability_id"`
+	Parameters   []byte `json:"parameters,omitempty"`
 }
 
 type aicPA struct {
@@ -62,6 +63,10 @@ type aicIssueReq struct {
 	UserAuthTimestamp  string `json:"user_auth_timestamp,omitempty"`
 	UserAuthReasonCode string `json:"user_auth_reason_code,omitempty"`
 	UserAuthReasonDesc string `json:"user_auth_reason_description,omitempty"`
+	// ClaimsDigest is the SHA-256 of the validated capability claims file
+	// (P1-3). It is embedded in the signed DelegationAuthorization reason so
+	// the authorization evidence is anchored to the AI-generated claims.
+	ClaimsDigest string `json:"capability_claims_digest,omitempty"`
 	// UserCertPEM is the DA signer (user) certificate PEM. varwof-core uses it to verify
 	// the DelegationAuthorization signature (C3: CA must verify the subject's signature).
 	UserCertPEM string `json:"user_cert_pem,omitempty"`
@@ -84,6 +89,7 @@ func cmdAICIssue(client *Client, args map[string]string) {
 	caName := args["--ca"]
 	spiffeDomain := args["--spiffe-domain"]
 	isSPIFFE := args["--spiffe"] == "true"
+	claimsDigest := args["--claims-digest"]
 	if userCertPath == "" {
 		fmt.Fprintln(os.Stderr, "Error: --user-cert is required")
 		os.Exit(1)
@@ -133,13 +139,13 @@ func cmdAICIssue(client *Client, args map[string]string) {
 	var caps []aicCap
 	var tbsCaps []pki.Capability
 	for _, c := range strings.Fields(capsStr) {
-		parts := strings.SplitN(c, ":", 2)
-		if len(parts) != 2 {
-			fmt.Fprintf(os.Stderr, "Error: invalid capability %q (expected scheme:capability)\n", c)
+		scheme, capID, params, err := parseCapToken(c)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
-		caps = append(caps, aicCap{SchemeID: parts[0], CapabilityID: parts[1]})
-		tbsCaps = append(tbsCaps, pki.Capability{SchemeId: parts[0], CapabilityId: parts[1]})
+		caps = append(caps, aicCap{SchemeID: scheme, CapabilityID: capID, Parameters: params})
+		tbsCaps = append(tbsCaps, pki.Capability{SchemeId: scheme, CapabilityId: capID, Parameters: params})
 	}
 
 	// PA grants: only from --pa flag, NOT from --caps.
@@ -147,12 +153,12 @@ func cmdAICIssue(client *Client, args map[string]string) {
 	var grants []aicGrant
 	if paStr := args["--pa"]; paStr != "" {
 		for _, g := range strings.Fields(paStr) {
-			parts := strings.SplitN(g, ":", 2)
-			if len(parts) != 2 {
-				fmt.Fprintf(os.Stderr, "Error: invalid PA grant %q (expected scheme:capability)\n", g)
+			scheme, capID, params, err := parseCapToken(g)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
-			grants = append(grants, aicGrant{SchemeID: parts[0], CapabilityID: parts[1]})
+			grants = append(grants, aicGrant{SchemeID: scheme, CapabilityID: capID, Parameters: params})
 		}
 	}
 
@@ -209,6 +215,7 @@ func cmdAICIssue(client *Client, args map[string]string) {
 		UserCertPEM:              userCertPEM,
 		IsSPIFFE:                 isSPIFFEPtr,
 		SPIFFEDomain:             spiffeDomain,
+		ClaimsDigest:             claimsDigest,
 	}
 	userKeyPassword := args["--key-password"]
 	if err := fillDelegationAuthEvidence(&req, userKeyPath, userKeyPassword, pu, daAgentID, tbsCaps, tbsConstraints, mode); err != nil {
@@ -322,6 +329,9 @@ func fillDelegationAuthEvidence(req *aicIssueReq, userKeyPath, password string, 
 	ts := time.Now().UTC().Truncate(time.Second)
 	reasonCode := "API_ISSUE"
 	reasonDesc := "user-authorized AIC issuance"
+	if cd := req.ClaimsDigest; cd != "" {
+		reasonDesc += "; capability-claims:sha256:" + cd
+	}
 	tbs := &pki.DelegationAuthTBS{
 		Version:                  1,
 		AgentId:                  agentID,
@@ -409,4 +419,30 @@ func readPEM(path string) (string, error) {
 // implementation so format changes stay in sync (CL9).
 func principalUidFromCert(cn string, cert *x509.Certificate) (string, error) {
 	return pki.MakePrincipalUidFromCert(cn, cn, cert).String(), nil
+}
+
+// parseCapToken parses a capability token of the form
+//
+//	scheme:capability
+//	scheme:capability:{json-params}
+//	scheme:capability{json-params}
+//
+// The scheme segment is everything up to the first ':' of the base; the
+// capability ID may itself contain ':' (e.g. "query:SELECT"). Parameters are
+// the JSON object/array following the first '{' (P0-2).
+func parseCapToken(token string) (scheme, capID string, params []byte, err error) {
+	base := token
+	if idx := strings.Index(token, "{"); idx >= 0 {
+		base = strings.TrimSuffix(token[:idx], ":")
+		raw := token[idx:]
+		if len(raw) < 2 || (raw[0] != '{' && raw[0] != '[') || !json.Valid([]byte(raw)) {
+			return "", "", nil, fmt.Errorf("invalid capability %q: parameters must be a JSON object/array", token)
+		}
+		params = []byte(raw)
+	}
+	parts := strings.SplitN(base, ":", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", nil, fmt.Errorf("invalid capability %q (expected scheme:capability[:jsonparams])", token)
+	}
+	return parts[0], parts[1], params, nil
 }

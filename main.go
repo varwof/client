@@ -74,9 +74,12 @@ Commands:
   list     [--ca <ca>] [--status <status>] [--cn <cn>] [--json]
   cas      [--ca <name>] [--json] [--pem]
   selfcheck --ca <ca>   Smoke-test the PKI: healthz + CRL repair + issue/revoke/CRL
-  aic issue --user-cert <file> --user-key <file> --agent <id> --caps 'scheme:cap ...' [--constraints 'scheme:cap[:jsonparams] ...']
-           [--pa 'scheme:cap ...'] [--ca <ca>] [--ou <ou>] [--out <dir>] [--spiffe --spiffe-domain <domain>]
+  aic issue --user-cert <file> --user-key <file> --agent <id> --caps 'scheme:cap[:{json}] ...' [--constraints 'scheme:cap[:jsonparams] ...']
+           [--pa 'scheme:cap[:{json}] ...'] [--claims-digest <sha256>] [--ca <ca>] [--ou <ou>]
+           [--out <dir>] [--spiffe --spiffe-domain <domain>]
            Issue an AIC from an existing user cert
+           (caps/pa may carry JSON parameters: 'std/database-v1:query:SELECT:{"tables":["customers"]}';
+           --claims-digest anchors the validated capability claims into the signed DA reason)
   aic batch --config <file.json> [--out <dir>]  Batch-issue AICs from a JSON user list
   aic list --config <file.json>   List users in the batch config file
   aic jwt [--cert <file.pem>] [--scope <s>] [--out <file>] [--json]
